@@ -1,0 +1,60 @@
+name: animal-conform
+domain: animal
+owner: animal-team
+description: >
+  Conform every shelter feed into the domain event model. Sources disagree on grain, shape and
+  vocabulary; this is the job that makes them agree.
+
+schedule:
+  expression: "cron(0 8 * * ? *)"
+  enabled:
+    dev: false
+    prod: true
+
+jobs:
+  - name: conform
+    type: glue_spark
+    entrypoint: jobs/conform.py
+    glue_version: "5.0"          # Spark 3.5.4 / Python 3.11 / Java 17
+    worker_type: G.1X
+    workers:
+      dev: 2                     # 2 is the Glue minimum; there is no cheaper Spark
+      prod: 4
+    iceberg: true
+    timeout_minutes: 60
+    max_concurrent_runs: 1       # a stuck schedule must not stack executions
+    arguments:
+      LAKEWORKS_TARGET: glue
+
+orchestration:
+  pattern: wap
+  audit:
+    assertions:
+      - grain_is_unique: [animal_key, event_at, event_type]
+      - rows_arrived
+    on_fail: abort               # branch retained for inspection, main untouched
+
+# These two lists are the whole reason the module can generate an IAM policy. Least privilege stops
+# being discipline and becomes a property of the system: the job gets read on exactly these and
+# write on exactly those, derived, not hand-written.
+reads:
+  - lakeworks_{env}_animal_bronze.shelter_feed
+  - lakeworks_{env}_platform_gold.dim_outcome_type
+  - lakeworks_{env}_platform_gold.dim_breed
+writes:
+  - lakeworks_{env}_animal_silver.animal
+  - lakeworks_{env}_animal_silver.animal_event
+
+# Cross-referenced against runtime OpenLineage. A job reading something it did not declare shows up
+# as a diff between the static graph and the observed one, which is a real correctness signal.
+maintenance:
+  compact: weekly
+  expire_snapshots:
+    retain: 10                   # ten daily runs of rollback window
+
+alerts:
+  on_failure: [animal-team]
+  sla_minutes: 120
+
+contracts:
+  - contracts/animal_silver.v1.yml
