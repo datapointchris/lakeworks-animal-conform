@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.11"
 
 [[package]]
@@ -23,7 +23,7 @@ wheels = [
 [[package]]
 name = "lakeworks"
 version = "0.1.0"
-source = { git = "https://github.com/datapointchris/lakeworks-platform-lib?rev=v0.1.0#56e4be4fddad68fa3679456cf17f0b90c7d0f952" }
+source = { git = "https://github.com/datapointchris/lakeworks-platform-lib?rev=v0.1.0#4a3ff3db46020b75e4969c3cd01983e9a493fd61" }
 dependencies = [
     { name = "pyyaml" },
 ]
