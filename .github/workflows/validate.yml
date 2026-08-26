@@ -13,7 +13,7 @@ permissions:
 jobs:
 
   python:
-    runs-on: [self-hosted, private-ci]
+    runs-on: ubuntu-latest
     steps:
 
       - uses: actions/checkout@v7
@@ -85,7 +85,7 @@ jobs:
           exit 1
 
   terraform-infra:
-    runs-on: [self-hosted, private-ci]
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: infra
