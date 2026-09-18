@@ -1,9 +1,7 @@
-# CLAUDE.md
+# lakeworks-animal-conform
 
-Guidance for Claude Code working in this repository.
-
-Read the README first. It carries the three ways sources disagree, why the Terraform lives beside
-the code here, and why the spec drives the infrastructure rather than being restated in HCL.
+The README carries the three ways sources disagree, why the Terraform lives beside the code here,
+and why the spec drives the infrastructure rather than being restated in HCL.
 
 ## No source-specific branch in the job
 
