@@ -106,10 +106,12 @@ against real data.
 
 Terraform reads the pipeline's name, domain and owner, its first job, and its `reads` and `writes`.
 From the job it takes the entrypoint, the Glue version, the worker type, the worker count per
-environment, the timeout and the concurrency limit, and it checks the job's `type`. Each table
-name carries an `{env}` placeholder that `-var env` fills, so one spec drives both environments.
-Nothing in this repo reads the `schedule`, `orchestration`, `maintenance`, `alerts` or `contracts`
-blocks.
+environment, the timeout and the concurrency limit, and it checks the job's `type`. Each of the
+job's `arguments` reaches Glue as `--NAME`, and `iceberg` decides whether Glue loads the Iceberg
+runtime. The warehouse and the staged files are derived here and cannot be redirected from the
+spec. Each table name carries an `{env}` placeholder that `-var env` fills, so one spec drives both
+environments. Nothing in this repo reads the `schedule`, `orchestration`, `maintenance`, `alerts`
+or `contracts` blocks.
 
 **The Glue catalog permissions are generated from the declared `reads` and `writes`.** The job can
 read only the tables it declares reading. It can create or update only the tables it declares

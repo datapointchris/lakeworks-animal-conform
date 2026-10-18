@@ -36,6 +36,13 @@ locals {
   write_databases = toset([for t in local.writes : split(".", t)[0]])
 
   workers = local.job.workers[var.env]
+
+  # Each argument the spec declares reaches Glue as `--NAME`, and `iceberg` decides whether Glue
+  # loads the Iceberg runtime.
+  spec_arguments = merge(
+    { for name, value in local.job.arguments : "--${name}" => tostring(value) },
+    local.job.iceberg ? { "--datalake-formats" = "iceberg" } : {},
+  )
 }
 
 module "naming" {
@@ -159,15 +166,15 @@ resource "aws_glue_job" "conform" {
     script_location = "s3://${module.naming.ops_bucket}/artifacts/${local.spec.name}/${var.artifact_sha}/${local.job.entrypoint}"
   }
 
-  default_arguments = {
+  # The spec's arguments merge first, so the warehouse and the staged files, which this module
+  # derives from the naming module and the artifact sha, cannot be redirected from the spec.
+  default_arguments = merge(local.spec_arguments, {
     "--enable-glue-datacatalog"          = "true"
-    "--datalake-formats"                 = "iceberg"
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-metrics"                   = "true"
-    "--LAKEWORKS_TARGET"                 = "glue"
     "--LAKEWORKS_WAREHOUSE"              = "s3://${module.naming.lake_bucket}/warehouse/"
     "--extra-files"                      = "s3://${module.naming.ops_bucket}/artifacts/${local.spec.name}/${var.artifact_sha}/sources/"
-  }
+  })
 
   lifecycle {
     precondition {
