@@ -312,18 +312,16 @@ def run() -> None:
     )
     events = deduplicate(events)
 
-    # An empty run is the failure that looks most like success, so it is refused before anything is
-    # written. It cannot be an audit assertion: the staged branch starts from main and carries every
-    # row already published, so a count over it reaches zero only on the table's first write.
-    if events.isEmpty():
-        raise RuntimeError(f'No events conformed from {len(specs)} enabled sources. Check that bronze holds their feeds.')
-
     target = 'lakeworks_animal_silver.animal_event'
-    assertions = [iceberg.grain_is_unique('animal_key', 'event_at', 'event_type')]
+    assertions = [
+        iceberg.grain_is_unique('animal_key', 'event_at', 'event_type'),
+        iceberg.rows_arrived(),
+    ]
 
-    iceberg.stamp_run_id(spark, target)
+    # Every run conforms all of bronze, so the write replaces the table's rows. An append would add a
+    # second copy of every event already published.
     with iceberg.write_audit_publish(spark, target, assertions) as staged:
-        events.writeTo(staged).append()
+        events.writeTo(staged).options(**iceberg.run_id_options()).overwrite(sf.lit(True))
 
     unmapped = events.where(sf.col('outcome_type') == UNMAPPED).count()
     if unmapped > 0:

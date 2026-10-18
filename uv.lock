@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11"
 
 [[package]]
@@ -22,11 +22,8 @@ wheels = [
 
 [[package]]
 name = "lakeworks"
-version = "0.1.0"
-source = { git = "https://github.com/datapointchris/lakeworks-platform-lib?rev=v0.1.0#4a3ff3db46020b75e4969c3cd01983e9a493fd61" }
-dependencies = [
-    { name = "pyyaml" },
-]
+version = "0.2.1"
+source = { git = "https://github.com/datapointchris/lakeworks-platform-lib?rev=v0.2.1#edc129ca5c86cbcee55a5dd2d959ad8415b9dc13" }
 
 [[package]]
 name = "lakeworks-animal-conform"
@@ -46,7 +43,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "lakeworks", git = "https://github.com/datapointchris/lakeworks-platform-lib?rev=v0.1.0" },
+    { name = "lakeworks", git = "https://github.com/datapointchris/lakeworks-platform-lib?rev=v0.2.1" },
     { name = "pyspark", marker = "extra == 'dev'", specifier = "==3.5.4" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "pyyaml", specifier = ">=6.0" },

@@ -7,7 +7,7 @@ requires-python = ">=3.11"          # Glue 5.0 ships Python 3.11; a higher floor
 # Pinned by tag, never by branch. A pipeline floating on main gets a different library on every
 # deploy, and the resulting failure looks like a data problem rather than a dependency one.
 dependencies = [
-    "lakeworks @ git+https://github.com/datapointchris/lakeworks-platform-lib@v0.1.0",
+    "lakeworks @ git+https://github.com/datapointchris/lakeworks-platform-lib@v0.2.1",
     "pyyaml>=6.0",
 ]
 

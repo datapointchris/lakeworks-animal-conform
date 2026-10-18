@@ -93,13 +93,11 @@ A spelling with no row in the vocabulary table becomes `__unmapped__`, never nul
 indistinguishable from a value the source never gave. A run that leaves any outcome type unmapped
 logs a warning with the count. The fix for each spelling is a row in `dim_outcome_type`.
 
-The write goes through write-audit-publish. The events land on an Iceberg branch, and the branch is
-published only if the grain of animal key, event time and event type is unique across it. A failed
-audit leaves the branch in place for inspection and the published table untouched.
-
-A run that conforms no events fails before it writes anything. That check cannot be an audit
-assertion. The branch starts from the published table and carries every row already there, so a
-count over it reaches zero only on the table's first write.
+Every run conforms all of bronze, so its write replaces the table's rows rather than appending to
+them. The write goes through write-audit-publish. The events land on an Iceberg branch, and the
+branch is published only if two assertions hold: the grain of animal key, event time and event type
+is unique, and rows arrived. A failed audit leaves the branch in place for inspection and the
+published table untouched.
 
 ## `pipeline.yml` — the spec Terraform reads rather than restates
 
