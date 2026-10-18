@@ -55,6 +55,3 @@ maintenance:
 alerts:
   on_failure: [animal-team]
   sla_minutes: 120
-
-contracts:
-  - contracts/animal_silver.v1.yml
