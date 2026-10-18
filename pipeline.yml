@@ -35,8 +35,11 @@ orchestration:
     on_fail: abort               # branch retained for inspection, main untouched
 
 # These two lists are the whole reason the module can generate an IAM policy. Least privilege stops
-# being discipline and becomes a property of the system: the job gets read on exactly these and
-# write on exactly those, derived, not hand-written.
+# being discipline and becomes a property of the system: the job's Glue catalog access is read on
+# exactly these and write on exactly those, derived, not hand-written.
+#
+# Cross-referenced against runtime OpenLineage. A job reading something it did not declare shows up
+# as a diff between the static graph and the observed one, which is a real correctness signal.
 reads:
   - lakeworks_{env}_animal_bronze.shelter_feed
   - lakeworks_{env}_platform_gold.dim_outcome_type
@@ -45,8 +48,6 @@ writes:
   - lakeworks_{env}_animal_silver.animal
   - lakeworks_{env}_animal_silver.animal_event
 
-# Cross-referenced against runtime OpenLineage. A job reading something it did not declare shows up
-# as a diff between the static graph and the observed one, which is a real correctness signal.
 maintenance:
   compact: weekly
   expire_snapshots:
