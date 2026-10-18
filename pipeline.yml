@@ -29,9 +29,10 @@ jobs:
 orchestration:
   pattern: wap
   audit:
+    # No rows_arrived. The staged branch carries every row main already holds, so a count over it
+    # cannot reach zero on an append. The job refuses an empty frame before it writes instead.
     assertions:
       - grain_is_unique: [animal_key, event_at, event_type]
-      - rows_arrived
     on_fail: abort               # branch retained for inspection, main untouched
 
 # These two lists are the whole reason the module can generate an IAM policy. Least privilege stops
