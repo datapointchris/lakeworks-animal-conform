@@ -40,7 +40,9 @@ terraform -chdir=infra init -backend=false   # providers and the naming module; 
 terraform -chdir=infra validate              # fails if pipeline.yml lacks a key the module reads
 
 # Everything below reaches AWS, as whatever credentials the shell holds.
-terraform -chdir=infra init -backend-config="bucket=lakeworks-tfstate-<management-account-id>"
+terraform -chdir=infra init \
+  -backend-config="bucket=lakeworks-tfstate-<management-account-id>" \
+  -backend-config="key=dev/animal/conform/terraform.tfstate"   # the env here matches -var env
 terraform -chdir=infra apply -var env=dev -var artifact_sha=$(git rev-parse --short HEAD)
 terraform -chdir=infra output glue_job_name  # the name Glue holds the job under
 ```
@@ -49,9 +51,11 @@ The first two commands need no credentials. `validate` decodes `pipeline.yml` an
 the module reads that the spec lacks. It does not run the precondition that refuses a job whose
 `type` is not `glue_spark`. `apply` runs it.
 
-The backend is partial. `infra/backend.tf` names the state key and the region and leaves out the
-bucket, because the bucket's name carries an account id. The key is
-`dev/animal/conform/terraform.tfstate` whatever `-var env` says.
+The backend is partial. `infra/backend.tf` leaves out the bucket and the key, because a backend
+block cannot read a variable and both vary. The bucket's name carries an account id, and the key
+carries the environment, so both are passed at init. The key's env segment has to match
+`-var env`. A `prod` deploy is initialized with `key=prod/animal/conform/terraform.tfstate`, and a
+mismatch records one environment's resources in the other's state.
 
 The provider assumes no role. The job lands in the account the shell's credentials resolve to, and
 the bucket names the naming module builds carry that account's id. The buckets and databases the
