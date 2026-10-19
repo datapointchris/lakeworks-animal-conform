@@ -15,7 +15,7 @@ dependencies = [
 dev = [
     "pyspark==3.5.4",               # matches Glue 5.0 exactly
     "pytest>=8.0",
-    "ruff==0.12.5",
+    "ruff==0.17.1",
 ]
 
 [build-system]
