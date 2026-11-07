@@ -26,8 +26,11 @@ It is one part of the lakeworks platform. Each neighbor holds a part this repo d
 ```bash
 git clone https://github.com/datapointchris/lakeworks-animal-conform
 cd lakeworks-animal-conform
-uv sync --extra dev    # the job's dependencies, plus pyspark pinned to the Spark Glue runs
+task setup    # the job's dependencies, pyspark pinned to the Spark Glue runs, and the git hooks
 ```
+
+`task test`, `task lint`, `task format` and `task infra:validate` run the suite, the read-only
+checks, the rewriting formatters and the credential-free Terraform check. `task` alone lists them.
 
 `infra/` needs Terraform at the version `infra/main.tf` requires. `requires-python` is held at the
 Python that Glue runs, because a job built for a higher floor cannot run there.
