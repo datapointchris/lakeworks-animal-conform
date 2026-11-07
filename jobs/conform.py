@@ -51,6 +51,10 @@ class Shape(enum.Enum):
     """One row carrying both. Sonoma, Long Beach."""
 
 
+class NoEnabledSourceError(Exception):
+    """The staged source directory holds no spec with `enabled: true`."""
+
+
 # ---------------------------------------------------------------- impure: read the world
 
 
@@ -71,6 +75,8 @@ def load_source_specs(source_dir: pathlib.Path) -> list[dict]:
     Raises:
         FileNotFoundError: If the directory was not staged. Not defaulted to an empty list — a run
             that conforms zero sources and reports success is indistinguishable from a working one.
+        NoEnabledSourceError: If the directory holds no spec with `enabled: true`, for the same
+            reason.
     """
     if not source_dir.is_dir():
         raise FileNotFoundError(f'Source spec directory {source_dir} was not staged. Check --extra-files on the job definition.')
@@ -78,6 +84,11 @@ def load_source_specs(source_dir: pathlib.Path) -> list[dict]:
     specs = [yaml.safe_load(path.read_text()) for path in sorted(source_dir.glob('*.yml'))]
     enabled = [spec for spec in specs if spec['enabled']]
     log.info(f'loaded {len(enabled)} enabled source specs of {len(specs)} found in {source_dir}')
+    if not enabled:
+        raise NoEnabledSourceError(
+            f'None of the {len(specs)} source specs in {source_dir} is enabled, so there is nothing to conform. '
+            f'Set `enabled: true` in at least one source spec and stage it again.'
+        )
     return enabled
 
 
