@@ -1,5 +1,5 @@
 output "glue_job_name" {
-  description = "Read by dectl to resolve this pipeline's alias to its real AWS name."
+  description = "The name AWS holds the Glue job under, for starting a run or reading its history."
   value       = aws_glue_job.conform.name
 }
 
