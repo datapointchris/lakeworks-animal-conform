@@ -2,8 +2,9 @@
 
 The Glue Spark job that conforms every shelter feed into the animal domain's event model, and the
 Terraform that deploys it. Shelter portals publish the same intakes and outcomes in different
-shapes, grains and vocabularies. This job makes them agree and writes one event stream to the
-silver layer.
+shapes, grains and vocabularies. This job reads them from the bronze layer, where each feed lands
+as the source published it. It makes them agree and writes one event stream to the silver layer,
+the tier of cleaned, conformed tables built from bronze.
 
 It is one part of the lakeworks platform. Each neighbor holds a part this repo does not:
 
@@ -11,7 +12,9 @@ It is one part of the lakeworks platform. Each neighbor holds a part this repo d
   each source: its portal, its shape and its column mapping. This repo reads those declarations and
   holds no code for any one source.
 - [`lakeworks-platform-lib`](https://github.com/datapointchris/lakeworks-platform-lib) builds the
-  Spark session and runs the write-audit-publish commit. The job imports it at a pinned tag.
+  Spark session and runs the write-audit-publish commit: the write lands on an Iceberg branch, is
+  checked there, and is published to the table only if every check passes. The job imports it at a
+  pinned tag.
 - [`lakeworks-platform-core`](https://github.com/datapointchris/lakeworks-platform-core) creates the
   lake and ops buckets and the Glue databases. This repo creates only its own job, role and log
   group.
