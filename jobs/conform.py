@@ -1,19 +1,12 @@
 """Conform every shelter feed into the domain event model.
 
-The hardest ordinary problem in this department. Sources disagree three ways:
+Sources disagree on shape, grain and vocabulary. This module holds no branch that names a source:
+each difference is data, as a `shape` and a `mapping` in the source's spec or a row in a vocabulary
+table. README.md, in its section on this file, says why.
 
-  1. Shape    — some publish separate intake and outcome feeds, some publish one row carrying both.
-  2. Grain    — one row per animal in some feeds, one row per animal-visit in others.
-  3. Vocabulary — `Return to Owner` / `RETURN TO OWNER` / `RTO` are the same outcome.
-
-The load-bearing claim about this module: **it contains no source-specific branch.** Every
-difference above is expressed as data — a `mapping` block and a `shape` in the source YAML, and a
-row in `dim_outcome_type` — because thirty sources handled by thirty `if` statements is thirty
-near-identical code paths that diverge over two years, each with its own retry bug.
-
-The one thing that is genuinely code is the shape dispatch, and it is an enum with a branch per
-member so that adding a sixth portal platform fails loudly rather than falling through to whatever
-was written first.
+The shape dispatch in `conform_source` is the one piece of genuine code. A `shape` value that
+`Shape` does not declare raises `ValueError` when the spec is read, and a member with no `match`
+case raises one after the match. Neither falls through to another shape.
 """
 
 import enum

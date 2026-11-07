@@ -15,7 +15,7 @@ variable "region" {
 }
 
 variable "artifact_sha" {
-  description = "Commit sha of the job artifact in the ops bucket. Never `latest` — a Glue job whose script is latest.py cannot be rolled back and cannot be reproduced, and the S3 path is the only versioning Glue offers."
+  description = "Hex commit sha of the job artifact in the ops bucket. A branch or tag is refused."
   type        = string
 
   validation {

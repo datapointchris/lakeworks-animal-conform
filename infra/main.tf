@@ -19,9 +19,8 @@ provider "aws" {
 
 data "aws_caller_identity" "current" {}
 
-# The pipeline spec is the source of truth, and Terraform reads it rather than restating it. A
-# second declaration of the same facts in HCL is a second thing to keep in sync, and it is the one
-# that drifts — nothing runs the HCL copy against real data.
+# pipeline.yml is the source of truth, read here rather than restated. README.md's section on
+# pipeline.yml says why.
 locals {
   spec = yamldecode(file("${path.module}/../pipeline.yml"))
   job  = local.spec.jobs[0]
@@ -71,8 +70,8 @@ resource "aws_iam_role" "task" {
   })
 }
 
-# Least privilege stops being discipline and becomes a property of the system: the policy is
-# generated from what the spec declares, so a job cannot read a table it did not say it reads.
+# The Glue catalog statements are generated from the spec's `reads` and `writes`. README.md's
+# section on pipeline.yml says what that guarantees.
 data "aws_iam_policy_document" "task" {
   statement {
     sid       = "ReadLakeData"

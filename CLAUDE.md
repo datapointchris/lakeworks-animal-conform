@@ -5,16 +5,11 @@ and why the spec drives the infrastructure rather than being restated in HCL.
 
 ## No source-specific branch in the job
 
-`jobs/conform.py` contains none, and that is the claim the whole design rests on. Shape and mapping
-are declared in the sources repo; vocabulary is a row in `dim_outcome_type`.
+`jobs/conform.py` contains none. When a source does not fit, the fix is a declaration in the
+sources repo or a row in a vocabulary table, never an `if` naming that source. The shape dispatch
+is an enum with a branch per member. Do not add a catch-all case to it.
 
-When a source does not fit, the fix is a declaration or a dimension row — never an `if` naming that
-source. Thirty sources handled by thirty branches is thirty near-identical paths that diverge over
-two years, each acquiring its own retry bug.
-
-The one genuine piece of code is the shape dispatch. It is an enum with a branch per member, so a
-source declaring a shape with no branch fails the run instead of falling through a default. Do not
-add a catch-all case to it.
+README.md's section on `jobs/conform.py` says why.
 
 ## Every external effect in the job has one door
 
@@ -34,20 +29,15 @@ new door named here beside them.
 ## The spec is read, not restated
 
 `infra/main.tf` reads `pipeline.yml` with `yamldecode`. Do not copy a value out of the spec into
-HCL, even one — a second declaration of the same fact is the one that drifts, because nothing runs
-the HCL copy against real data.
+HCL, even one. Do not hand-write an IAM policy statement to unblock something: the Glue catalog
+statements are generated from the spec's `reads` and `writes`.
 
-This is what makes the IAM policy's Glue catalog statements generated from the declared `reads` and
-`writes`. A job can read exactly the tables it claims to read. S3 access is coarser, read across the
-lake bucket and write under `warehouse/`, so the catalog is where that boundary holds.
-Hand-writing a policy statement to unblock something breaks that property silently: the job then
-has access the spec does not account for, and nothing reports it.
+README.md's section on `pipeline.yml` says why.
 
 ## `artifact_sha` refuses a branch or tag
 
-It is validated as a hex sha, on purpose. The S3 path is the only versioning Glue offers, so a job
-whose script is `latest.py` cannot be rolled back and cannot be reproduced. Do not relax the
-validation to make a deploy command shorter.
+Do not relax its hex-sha validation to make a deploy command shorter. README.md's section on
+`infra/` says why.
 
 ```bash
 terraform -chdir=infra init \

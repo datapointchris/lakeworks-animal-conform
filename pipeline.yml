@@ -34,9 +34,8 @@ orchestration:
       - rows_arrived
     on_fail: abort               # branch retained for inspection, main untouched
 
-# These two lists are the whole reason the module can generate an IAM policy. Least privilege stops
-# being discipline and becomes a property of the system: the job's Glue catalog access is read on
-# exactly these and write on exactly those, derived, not hand-written.
+# Terraform generates the job's Glue catalog permissions from these two lists: read on `reads`,
+# write on `writes`. README.md's section on pipeline.yml says what that guarantees.
 #
 # Cross-referenced against runtime OpenLineage. A job reading something it did not declare shows up
 # as a diff between the static graph and the observed one, which is a real correctness signal.
