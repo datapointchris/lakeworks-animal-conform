@@ -92,6 +92,19 @@ def load_source_specs(source_dir: pathlib.Path) -> list[dict]:
     return enabled
 
 
+def read_catalog_table(spark: SparkSession, identifier: str) -> DataFrame:
+    """Read one table from the catalog. Every catalog read in the job goes through here.
+
+    Args:
+        spark: Active session.
+        identifier: The table as `database.table`.
+
+    Returns:
+        The table's rows, read lazily when an action runs.
+    """
+    return spark.table(identifier)
+
+
 def read_bronze(spark: SparkSession, source_id: str, feed: str) -> DataFrame:
     """Read one source's bronze feed.
 
@@ -103,7 +116,8 @@ def read_bronze(spark: SparkSession, source_id: str, feed: str) -> DataFrame:
     Returns:
         The bronze rows for that source and feed.
     """
-    return spark.table('lakeworks_animal_bronze.shelter_feed').where((sf.col('source_id') == source_id) & (sf.col('feed') == feed))
+    bronze = read_catalog_table(spark, 'lakeworks_animal_bronze.shelter_feed')
+    return bronze.where((sf.col('source_id') == source_id) & (sf.col('feed') == feed))
 
 
 # ---------------------------------------------------------------- pure: the transformation
@@ -307,8 +321,8 @@ def run() -> None:
     spark = lakespark.session('animal-conform')
     specs = load_source_specs(pathlib.Path('sources'))
 
-    outcome_vocab = spark.table('lakeworks_platform_gold.dim_outcome_type')
-    breed_vocab = spark.table('lakeworks_platform_gold.dim_breed')
+    outcome_vocab = read_catalog_table(spark, 'lakeworks_platform_gold.dim_outcome_type')
+    breed_vocab = read_catalog_table(spark, 'lakeworks_platform_gold.dim_breed')
 
     per_source = [conform_source(spark, spec) for spec in specs]
     events = per_source[0]

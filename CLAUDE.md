@@ -16,6 +16,21 @@ The one genuine piece of code is the shape dispatch. It is an enum with a branch
 source declaring a shape with no branch fails the run instead of falling through a default. Do not
 add a catch-all case to it.
 
+## Every external effect in the job has one door
+
+Anything `jobs/conform.py` reads from or writes to outside the process goes through one named
+function, and every caller uses it. That function is where a timeout, a retry or a test stand-in
+attaches, once.
+
+- **The Spark session** comes only from `lakespark.session`, in the `lakeworks` library.
+- **Catalog reads** go only through `read_catalog_table`. `read_bronze` and the vocabulary lookups
+  in `run()` call it; nothing else calls `spark.table`.
+- **The staged source specs** are read from disk only by `load_source_specs`.
+- **The silver write** goes only through `iceberg.write_audit_publish`, in the `lakeworks` library.
+
+There are no sanctioned exceptions. A new read or write gets a call through one of these, or a
+new door named here beside them.
+
 ## The spec is read, not restated
 
 `infra/main.tf` reads `pipeline.yml` with `yamldecode`. Do not copy a value out of the spec into
