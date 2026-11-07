@@ -36,9 +36,9 @@ EVENT_INTAKE = 'intake'
 EVENT_OUTCOME = 'outcome'
 
 UNMAPPED = '__unmapped__'
-"""Vocabulary values with no mapping land here rather than being silently coerced. A growing
-unmapped bucket is alarmed on — silently absorbing an unknown outcome type is how a whole category
-disappears from a report without anyone noticing."""
+"""Vocabulary values with no mapping land here rather than becoming null, because a null is
+indistinguishable from a value the source never gave. After each write, `run()` logs a warning with
+the number of events whose outcome type landed here."""
 
 
 class Shape(enum.Enum):
