@@ -109,7 +109,7 @@ def read_bronze(spark: SparkSession, source_id: str, feed: str) -> DataFrame:
     Returns:
         The bronze rows for that source and feed.
     """
-    bronze = read_catalog_table(spark, 'lakeworks_animal_bronze.shelter_feed')
+    bronze = read_catalog_table(spark, lakespark.resolve_table('lakeworks_{env}_animal_bronze.shelter_feed'))
     return bronze.where((sf.col('source_id') == source_id) & (sf.col('feed') == feed))
 
 
@@ -314,8 +314,8 @@ def run() -> None:
     spark = lakespark.session('animal-conform')
     specs = load_source_specs(pathlib.Path('sources'))
 
-    outcome_vocab = read_catalog_table(spark, 'lakeworks_platform_gold.dim_outcome_type')
-    breed_vocab = read_catalog_table(spark, 'lakeworks_platform_gold.dim_breed')
+    outcome_vocab = read_catalog_table(spark, lakespark.resolve_table('lakeworks_{env}_platform_gold.dim_outcome_type'))
+    breed_vocab = read_catalog_table(spark, lakespark.resolve_table('lakeworks_{env}_platform_gold.dim_breed'))
 
     per_source = [conform_source(spark, spec) for spec in specs]
     events = per_source[0]
@@ -330,7 +330,7 @@ def run() -> None:
     )
     events = deduplicate(events)
 
-    target = 'lakeworks_animal_silver.animal_event'
+    target = lakespark.resolve_table('lakeworks_{env}_animal_silver.animal_event')
     assertions = [
         iceberg.grain_is_unique('animal_key', 'event_at', 'event_type'),
         iceberg.rows_arrived(),

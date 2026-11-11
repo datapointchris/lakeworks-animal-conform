@@ -165,13 +165,15 @@ resource "aws_glue_job" "conform" {
     script_location = "s3://${module.naming.ops_bucket}/artifacts/${local.spec.name}/${var.artifact_sha}/${local.job.entrypoint}"
   }
 
-  # The spec's arguments merge first, so the warehouse and the staged files, which this module
-  # derives from the naming module and the artifact sha, cannot be redirected from the spec.
+  # The spec's arguments merge first, so the warehouse, the environment and the staged files, which
+  # this module derives from the naming module, var.env and the artifact sha, cannot be redirected
+  # from the spec. The job fills its tables' {env} from LAKEWORKS_ENV, as the grants below do.
   default_arguments = merge(local.spec_arguments, {
     "--enable-glue-datacatalog"          = "true"
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-metrics"                   = "true"
     "--LAKEWORKS_WAREHOUSE"              = "s3://${module.naming.lake_bucket}/warehouse/"
+    "--LAKEWORKS_ENV"                    = var.env
     "--extra-files"                      = "s3://${module.naming.ops_bucket}/artifacts/${local.spec.name}/${var.artifact_sha}/sources/"
   })
 
