@@ -59,6 +59,9 @@ def load_source_specs(source_dir: pathlib.Path) -> list[dict]:
     PySpark's JVM handle for a Hadoop filesystem would work and is strictly more machinery for a
     file that is already on local disk.
 
+    The Glue job's `--extra-files` default argument in `infra/main.tf` stages the artifact's
+    `sources/` prefix, and README.md's section on starting from scratch says what has to be there.
+
     Args:
         source_dir: Directory holding one YAML per source.
 
