@@ -42,22 +42,13 @@ README.md's section on `pipeline.yml` says why.
 ## `artifact_sha` refuses a branch or tag
 
 Do not relax its hex-sha validation to make a deploy command shorter. README.md's section on
-`infra/` says why.
-
-```bash
-terraform -chdir=infra init \
-  -backend-config="bucket=lakeworks-tfstate-<management-account-id>" \
-  -backend-config="key=dev/animal/conform/terraform.tfstate"
-terraform -chdir=infra apply -var env=dev -var artifact_sha=$(git rev-parse --short HEAD)
-```
+`infra/` says why, and its section on starting from scratch holds the init and apply commands.
 
 ## Topology here is deliberate and not the only one
 
-Terraform lives in `infra/` beside the code it provisions, so one PR changes both and the deploy is
-atomic. The platform's design gives another domain the opposite arrangement, infrastructure in its
-own repo, because its pipelines share a resource that would otherwise have no owner. The comparison
-between the two is itself a deliverable, so do not converge this repo toward the other on the
-grounds of consistency.
+Terraform lives in `infra/` beside the code it provisions. Do not move it to a repo of its own, or
+otherwise converge this repo toward another domain's arrangement, for the sake of consistency.
+README.md's section on `infra/` says why.
 
 ## Bucket names come from the naming module, database names from the spec
 
@@ -71,6 +62,5 @@ Glue database names are the first segment of each table identifier in the spec's
 `writes`, with `{env}` filled.
 
 Nothing here reads SSM or another repo's Terraform state. The platform publishes the same names
-under `/lakeworks/{env}/platform/...` for consumers that cannot derive them. Adding a
-`terraform_remote_state` data source would hand this repo the whole platform state file in place
-of a single value.
+under `/lakeworks/{env}/platform/...` for consumers that cannot derive them. Do not add a
+`terraform_remote_state` data source. README.md's section on `infra/` says why.
