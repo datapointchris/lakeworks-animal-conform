@@ -293,9 +293,17 @@ def conform_source(spark: SparkSession, spec: dict) -> DataFrame:
             fallthrough — a new portal platform must fail loudly rather than be silently handled as
             whichever shape happened to be written first.
     """
-    shape = Shape(spec['shape'])
     mapping = spec['mapping']
     source_id = spec['source_id']
+    written_shape = spec['shape']
+    try:
+        shape = Shape(written_shape)
+    except ValueError:
+        declared = ', '.join(member.value for member in Shape)
+        raise ValueError(
+            f'Source {source_id} declares shape {written_shape!r} in the `shape` key of its spec in '
+            f'lakeworks-animal-sources. Expected one of: {declared}.'
+        ) from None
 
     match shape:
         case Shape.TWO_FEED:
@@ -306,7 +314,10 @@ def conform_source(spark: SparkSession, spec: dict) -> DataFrame:
             combined = project(read_bronze(spark, source_id, 'combined'), mapping['combined'])
             return to_events_from_one_row(combined)
 
-    raise ValueError(f'Source {source_id} declares shape {shape} with no conformance branch.')
+    raise ValueError(
+        f'Source {source_id} declares shape {written_shape!r} in the `shape` key of its spec, and `conform_source` '
+        f'has no branch for it. Add a `case Shape.{shape.name}` to the dispatch.'
+    )
 
 
 def run() -> None:
