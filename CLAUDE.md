@@ -32,6 +32,11 @@ new door named here beside them.
 HCL, even one. Do not hand-write an IAM policy statement to unblock something: the Glue catalog
 statements are generated from the spec's `reads` and `writes`.
 
+`jobs/conform.py` does not read `pipeline.yml`. It names each table it reads or writes as a literal,
+spelled as in the spec's `reads` and `writes` with the `{env}` placeholder, and resolves it with
+`lakespark.resolve_table`. A table renamed in the spec is renamed in `jobs/conform.py` too, or the
+job reaches a table its grant does not cover.
+
 README.md's section on `pipeline.yml` says why.
 
 ## `artifact_sha` refuses a branch or tag
