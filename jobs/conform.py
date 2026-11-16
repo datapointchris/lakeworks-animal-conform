@@ -30,8 +30,8 @@ EVENT_OUTCOME = 'outcome'
 
 UNMAPPED = '__unmapped__'
 """Vocabulary values with no mapping land here rather than becoming null, because a null is
-indistinguishable from a value the source never gave. After each write, `run()` logs a warning with
-the number of events whose outcome type landed here."""
+indistinguishable from a value the source never gave. After each write, `run()` logs a warning
+listing each source's outcome type spelling that landed here, with its event count."""
 
 
 class Shape(enum.Enum):
@@ -246,6 +246,28 @@ def normalise_vocabulary(events: DataFrame, vocabulary: DataFrame, raw_column: s
     )
 
 
+def unmapped_spellings(events: DataFrame, raw_column: str, out_column: str) -> DataFrame:
+    """Count each source's spellings that the vocabulary left unmapped.
+
+    Each row is one vocabulary row to add, so the warning that lists them is the whole fix.
+
+    Args:
+        events: Events after `normalise_vocabulary`.
+        raw_column: Column holding the source's spelling.
+        out_column: Column `normalise_vocabulary` wrote the canonical value into.
+
+    Returns:
+        One row per `source_id` and `raw_value` whose canonical value is UNMAPPED, with `events`
+        holding how many events carry it, most frequent first.
+    """
+    return (
+        events.where(sf.col(out_column) == UNMAPPED)
+        .groupBy(sf.col('source_id'), sf.col(raw_column).alias('raw_value'))
+        .agg(sf.count(sf.lit(1)).alias('events'))
+        .orderBy(sf.col('events').desc(), 'source_id', 'raw_value')
+    )
+
+
 def surrogate_key(*columns: str) -> Column:
     """Build a stable surrogate key from natural key columns.
 
@@ -328,7 +350,8 @@ def run() -> None:
     spark = lakespark.session('animal-conform')
     specs = load_source_specs(pathlib.Path('sources'))
 
-    outcome_vocab = read_catalog_table(spark, lakespark.resolve_table('lakeworks_{env}_platform_gold.dim_outcome_type'))
+    outcome_vocab_table = lakespark.resolve_table('lakeworks_{env}_platform_gold.dim_outcome_type')
+    outcome_vocab = read_catalog_table(spark, outcome_vocab_table)
     breed_vocab = read_catalog_table(spark, lakespark.resolve_table('lakeworks_{env}_platform_gold.dim_breed'))
 
     per_source = [conform_source(spark, spec) for spec in specs]
@@ -355,9 +378,13 @@ def run() -> None:
     with iceberg.write_audit_publish(spark, target, assertions) as staged:
         events.writeTo(staged).options(**iceberg.run_id_options()).overwrite(sf.lit(True))
 
-    unmapped = events.where(sf.col('outcome_type') == UNMAPPED).count()
-    if unmapped > 0:
-        log.warning(f'{unmapped} events carry an unmapped outcome type — dim_outcome_type needs a row')
+    unmapped = unmapped_spellings(events, 'outcome_type_raw', 'outcome_type').collect()
+    if unmapped:
+        listed = '; '.join(f'{row["source_id"]} {row["raw_value"]!r} ({row["events"]} events)' for row in unmapped)
+        log.warning(
+            f'{sum(row["events"] for row in unmapped)} events carry {len(unmapped)} unmapped outcome type spellings: {listed}. '
+            f'Add a row to {outcome_vocab_table} for each, with its source_id, the raw_value as listed and its canonical_value.'
+        )
 
 
 if __name__ == '__main__':

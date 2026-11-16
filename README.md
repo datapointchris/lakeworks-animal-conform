@@ -97,7 +97,8 @@ falls through to whichever shape was written first.
 
 A spelling with no row in the vocabulary table becomes `__unmapped__`, never null. A null is
 indistinguishable from a value the source never gave. A run that leaves any outcome type unmapped
-logs a warning with the count. The fix for each spelling is a row in `dim_outcome_type`.
+logs a warning listing each source's unmapped spelling with its event count. The fix for each
+spelling is a row in `dim_outcome_type` with that `source_id` and `raw_value`.
 
 Every run conforms all of bronze, so its write replaces the table's rows rather than appending to
 them. The write goes through write-audit-publish. The events land on an Iceberg branch, and the
