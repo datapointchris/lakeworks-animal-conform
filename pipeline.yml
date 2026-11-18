@@ -44,7 +44,6 @@ reads:
   - lakeworks_{env}_platform_gold.dim_outcome_type
   - lakeworks_{env}_platform_gold.dim_breed
 writes:
-  - lakeworks_{env}_animal_silver.animal
   - lakeworks_{env}_animal_silver.animal_event
 
 maintenance:
