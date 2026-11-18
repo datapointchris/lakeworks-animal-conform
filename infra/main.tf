@@ -73,6 +73,14 @@ resource "aws_iam_role" "task" {
 # The Glue catalog statements are generated from the spec's `reads` and `writes`. README.md's
 # section on pipeline.yml says what that guarantees.
 data "aws_iam_policy_document" "task" {
+  # Glue fetches the script and the staged files with this role, from this commit's artifact only.
+  statement {
+    sid       = "ReadJobArtifact"
+    effect    = "Allow"
+    actions   = ["s3:GetObject"]
+    resources = ["arn:aws:s3:::${local.artifact_prefix}/*"]
+  }
+
   statement {
     sid       = "ReadLakeData"
     effect    = "Allow"
@@ -162,7 +170,7 @@ resource "aws_glue_job" "conform" {
   command {
     name            = "glueetl"
     python_version  = "3"
-    script_location = "s3://${module.naming.ops_bucket}/artifacts/${local.spec.name}/${var.artifact_sha}/${local.job.entrypoint}"
+    script_location = "s3://${local.artifact_prefix}/${local.job.entrypoint}"
   }
 
   # The spec's arguments merge first, so the warehouse, the environment and the staged files, which
@@ -174,7 +182,7 @@ resource "aws_glue_job" "conform" {
     "--enable-metrics"                   = "true"
     "--LAKEWORKS_WAREHOUSE"              = "s3://${module.naming.lake_bucket}/warehouse/"
     "--LAKEWORKS_ENV"                    = var.env
-    "--extra-files"                      = "s3://${module.naming.ops_bucket}/artifacts/${local.spec.name}/${var.artifact_sha}/sources/"
+    "--extra-files"                      = "s3://${local.artifact_prefix}/sources/"
   })
 
   lifecycle {
